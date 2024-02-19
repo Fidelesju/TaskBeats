@@ -1,4 +1,4 @@
-package com.comunidadedevspace.taskbeats
+package com.comunidadedevspace.taskbeats.data
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -20,4 +20,7 @@ interface TaskDto {
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     fun update(task: Task)
+
+    @Query("Delete from task")
+    fun deleteAll()
 }

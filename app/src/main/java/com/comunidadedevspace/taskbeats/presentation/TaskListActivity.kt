@@ -1,14 +1,20 @@
-package com.comunidadedevspace.taskbeats
+package com.comunidadedevspace.taskbeats.presentation
 
 import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
+import com.comunidadedevspace.taskbeats.R
+import com.comunidadedevspace.taskbeats.data.AppDataBase
+import com.comunidadedevspace.taskbeats.data.Task
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
@@ -72,6 +78,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_task_list)
+        setSupportActionBar(findViewById(R.id.toolbar))
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         listFromDatabase()
 
@@ -94,6 +102,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    //Alterando tarefas
     private fun updateIntoTask(task: Task) {
         CoroutineScope(IO).launch {
             dao.update(task)
@@ -105,6 +114,13 @@ class MainActivity : AppCompatActivity() {
     private fun deleteIntoTask(task: Task) {
         CoroutineScope(IO).launch {
             dao.delete(task)
+            listFromDatabase()
+        }
+    }
+
+    private fun deleteAllTask() {
+        CoroutineScope(IO).launch {
+            dao.deleteAll()
             listFromDatabase()
         }
     }
@@ -139,6 +155,23 @@ class MainActivity : AppCompatActivity() {
     private fun openTaskListDetail(task: Task? = null) {
         val intent = TaskDetailActivity.start(this, task)
         resultActivity.launch(intent)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.menu_task_list, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.delete_all_task -> {
+                deleteAllTask()
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }
 
