@@ -1,4 +1,4 @@
-package com.comunidadedevspace.taskbeats.presentation
+package com.comunidadedevspace.taskbeats.presentation.activity
 
 import android.app.Activity
 import android.content.Context
@@ -11,13 +11,23 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import androidx.activity.viewModels
 import com.comunidadedevspace.taskbeats.R
-import com.comunidadedevspace.taskbeats.data.Task
+import com.comunidadedevspace.taskbeats.data.local.Task
+import com.comunidadedevspace.taskbeats.presentation.ActionType
+import com.comunidadedevspace.taskbeats.presentation.TaskAction
+import com.comunidadedevspace.taskbeats.presentation.viewModel.TaskDetailViewModel
 import com.google.android.material.snackbar.Snackbar
 
 class TaskDetailActivity : AppCompatActivity() {
 
     private var task: Task? = null
+
+    private val viewModel: TaskDetailViewModel by viewModels {
+        TaskDetailViewModel.getVMFactory(
+            application
+        )
+    }
 
     companion object {
         private const val TASK_DETAIL_EXTRA = "task.extra.detail"
@@ -63,10 +73,8 @@ class TaskDetailActivity : AppCompatActivity() {
                 showMessage(it, "Fields are required")
                 println("Deu erro setOnClickListener")
             }
-
         }
     }
-
 
     private fun addOrUpdateTask(
         id: Int,
@@ -75,7 +83,7 @@ class TaskDetailActivity : AppCompatActivity() {
         actionType: ActionType
     ) {
         val task = Task(id, title, description)
-        returnAction(task, actionType)
+        performAction(task, actionType)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -88,7 +96,7 @@ class TaskDetailActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.delete_task -> {
                 if (task != null) {
-                    returnAction(task!!, ActionType.DELETE)
+                    performAction(task!!, ActionType.DELETE)
                 } else {
                     println("Deu erro onOptionsItemSelected")
                 }
@@ -105,12 +113,10 @@ class TaskDetailActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun returnAction(task: Task, actionType: ActionType) {
-        val intent = Intent()
-            .apply {
-                val taskAction = TaskAction(task!!, actionType.name)
-                putExtra("TASK_ACTION_RESULT", taskAction)
-            }
+    private fun performAction(task: Task, actionType: ActionType) {
+
+        val taskAction = TaskAction(task, actionType.name)
+        viewModel.execute(taskAction)
         setResult(Activity.RESULT_OK, intent)
         finish()
     }
